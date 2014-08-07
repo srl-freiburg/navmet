@@ -1,10 +1,112 @@
 from __future__ import division
 
-# intrusion counts in personal spaces
-# - uniform
-# - anisotropic
-# - elliptic -> later
+import itertools
+import operator
 
+
+def count_uniform_intrusions(focal_agent, other_agents, regions=[0.45, 1.2, 3.6]):
+    """
+    Count the number of intrusions into various uniform regions around
+    a focal agent.
+
+    Parameters
+    -------------
+    focal_agent : numpy array
+        The focal_agent state as a 1D array in format [x, y, vx, vy, ...]
+    other_agents : list of numpy arrays
+        The other agents as a list of 1D arrays in format [[x, y, vx, vy, ...], ...]
+        or a numpy array of shape [agent_features x n_agents]
+    regions : list of float, optional (default: [0.45, 1.2, 3.6])
+        Radii of regions of the uniform region around the focal_agent to consider,
+        defaults to Proxemics distances (intimate, personal, social)
+
+    Returns
+    --------
+    ic : int
+        Intimate region intrusion counts
+    pc : int
+        Personal region intrusion counts
+    sc : int
+        Social region intrusion counts
+    """
+
+    # check that the regions list is strictly monotonically increasing
+    assert all(itertools.starmap(operator.le, zip(regions, regions[1:]))) is True,\
+         "Regions list must be monotonically increasing"
+
+    ic, pc, sc = 0, 0, 0    # TODO - allow more ranges
+    if isinstance(other_agents, list):
+        other_agents = np.array(other_agents)
+
+    for agent in other_agents:
+        isc = inside_uniform_region(focal_agent, agent, radius=regions[2])
+        if not isc:
+            continue
+
+        ipc = inside_uniform_region(focal_agent, agent, radius=regions[1])
+        if not ipc:
+            sc += 1
+            continue
+
+        iic = inside_uniform_region(focal_agent, agent, radius=regions[0])
+        if iic:
+            ic += 1
+        elif not iic and ipc:
+            pc += 1
+
+    return ic, pc, sc
+
+
+def count_anisotropic_intrusions(focal_agent, other_agents, aks):
+    """
+    Count the number of intrusions into various uniform regions around
+    a focal agent.
+
+    Parameters
+    -------------
+    focal_agent : numpy array
+        The focal_agent state as a 1D array in format [x, y, vx, vy, ...]
+    other_agents : list of numpy arrays
+        The other agents as a list of 1D arrays in format [[x, y, vx, vy, ...], ...]
+        or a numpy array of shape [agent_features x n_agents]
+    aks : list of float
+        ak parameters of the anisotropic region around the focal_agent to consider,
+
+    Returns
+    --------
+    ic : int
+        Intimate region intrusion counts
+    pc : int
+        Personal region intrusion counts
+    sc : int
+        Social region intrusion counts
+    """
+
+    # check that the regions list is strictly monotonically increasing
+    assert all(itertools.starmap(operator.le, zip(aks, aks[1:]))) is True,\
+         "aks list must be monotonically increasing"
+
+    ic, pc, sc = 0, 0, 0    # TODO - allow more ranges
+    if isinstance(other_agents, list):
+        other_agents = np.array(other_agents)
+
+    for agent in other_agents:
+        isc = inside_anisotropic_region(focal_agent, agent, ak=aks[2])
+        if not isc:
+            continue
+
+        ipc = inside_anisotropic_region(focal_agent, agent, ak=aks[1])
+        if not ipc:
+            sc += 1
+            continue
+
+        iic = inside_anisotropic_region(focal_agent, agent, ak=aks[0])
+        if iic:
+            ic += 1
+        elif not iic and ipc:
+            pc += 1
+
+    return ic, pc, sc
 
 
 def inside_uniform_region(focal_agent, other_agent, radius):
@@ -16,7 +118,7 @@ def inside_uniform_region(focal_agent, other_agent, radius):
     -------------
     focal_agent : numpy array
         The focal_agent state as a 1D array in format [x, y, vx, vy, ...]
-    other_agent : list of AgentState
+    other_agent : numpy array
         The other agent state as a 1D array in format [x, y, vx, vy, ...]
     radius : float
         Radius of the uniform region around the focal_agent to consider
@@ -42,13 +144,14 @@ def inside_anisotropic_region(focal_agent, other_agent, ak=1., bk=1., lambda_=0.
     as shown;
 
     ..math::
-
+        a \cdot \exp{\left(\frac{r_{ij} - d_{ij}}{b}\right)} \V{n}_{ij}
+        \left(\lambda + (1 - \lambda) \frac{1 + \cos(\varphi_{ij})}{2}\right)
 
     Parameters
     -------------
     focal_agent : numpy array
         The focal_agent state as a 1D array in format [x, y, vx, vy, ...]
-    other_agent : list of AgentState
+    other_agent : numpy array
         The other agent state as a 1D array in format [x, y, vx, vy, ...]
     ak : float, optional (default: 1.0)
         Parameter of anisotropic region, size scaling
