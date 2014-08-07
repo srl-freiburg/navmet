@@ -1,10 +1,5 @@
 from __future__ import division
 
-# Path length
-# heading changes
-# Energy?? - later
-# time to goal (abstract) - later
-
 import itertools
 import numpy as np
 
