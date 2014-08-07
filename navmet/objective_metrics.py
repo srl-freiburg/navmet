@@ -3,7 +3,7 @@ from __future__ import division
 import itertools
 import numpy as np
 
-from .angle_utils import subangles
+from .angle_utils import subangles, normalize
 
 
 def path_length(trajectory, timestamped=False):
@@ -65,9 +65,9 @@ def cumulative_heading_changes(trajectory, timestamped=False, degrees=False):
 
     ipoint = trajectory[0, :]
     if timestamped:
-        theta_old = math.atan2(ipoint[4], ipoint[3])
+        theta_old = normalize(np.arctan2(ipoint[4], ipoint[3]))
     else:
-        theta_old = math.atan2(ipoint[3], ipoint[2])
+        theta_old = normalize(np.arctan2(ipoint[3], ipoint[2]))
 
     theta_acc = 0
     for i, j in itertools.izip(xrange(trajectory.shape[0]), xrange(1, trajectory.shape[0])):
@@ -81,7 +81,7 @@ def cumulative_heading_changes(trajectory, timestamped=False, degrees=False):
         dx, dy = (x2 - x1), (y2 - y1)
 
         if abs(dx) > 1e-10 or abs(dy) > 1e-10:
-            theta_i = np.arctan2(dy, dx)
+            theta_i = normalize(np.arctan2(dy, dx))
             delta_theta = abs(subangles(theta_i, theta_old))
             theta_acc = theta_acc + delta_theta
             theta_old = theta_i

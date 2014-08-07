@@ -3,6 +3,8 @@ from __future__ import division
 import itertools
 import operator
 
+import numpy as np
+
 
 def count_uniform_intrusions(focal_agent, other_agents, regions=[0.45, 1.2, 3.6]):
     """
