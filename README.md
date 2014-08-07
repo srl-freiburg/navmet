@@ -14,6 +14,12 @@ Features
       - Uniform circles
       - Anisotropic regions
 
+Requirements
+---------------
+1. Numpy
+2. Matplotlib, optional (only used in examples)
+3. Seaborn, optional (only used in examples)
+
 Installation
 --------------
 ```sh

@@ -139,15 +139,14 @@ def inside_uniform_region(focal_agent, other_agent, radius):
         return False
 
 
-def inside_anisotropic_region(focal_agent, other_agent, ak=1., bk=1., lambda_=0.4, rij=0.4):
+def inside_anisotropic_region(focal_agent, other_agent, ak=1., bk=1., lmbda=0.4, rij=0.4):
     """
     Check if an agent is inside a given Anisotropic range of another agent as a measure
     of intrusion into the space. Anisotropic regions are circles whose shapes are parametrizable
     as shown;
 
-    ..math::
-        a \cdot \exp{\left(\frac{r_{ij} - d_{ij}}{b}\right)} \V{n}_{ij}
-        \left(\lambda + (1 - \lambda) \frac{1 + \cos(\varphi_{ij})}{2}\right)
+    .. math::
+        a \cdot b \exp{\left(\\frac{r_{ij} - d_{ij}}{b}\\right)} \mathbf{n}_{ij} \left(\lambda + (1 - \lambda) \\frac{1 + \cos(\\varphi_{ij})}{2}\\right)
 
     Parameters
     -------------
@@ -159,7 +158,7 @@ def inside_anisotropic_region(focal_agent, other_agent, ak=1., bk=1., lambda_=0.
         Parameter of anisotropic region, size scaling
     bk : float, optional (default: 1.0)
         Parameter of anisotropic region, size scaling
-    lambda_ : float, optional (default: 0.4)
+    lmbda : float, optional (default: 0.4)
         Parameter of anisotropic region, controls the shape 'circleness'
     rij : float, optional (default: 0.4)
         Parameter of anisotropic region, sum of agent radii in metres
@@ -185,7 +184,7 @@ def inside_anisotropic_region(focal_agent, other_agent, ak=1., bk=1., lambda_=0.
     nij = np.array([np.cos(phi), np.sin(phi)])  # normalized vector pointing from j to i
 
     alpha = ak * np.exp((rij - dij) / bk) * nij
-    beta_ = np.tile(np.ones(shape=(1, 2)) * lambda_ + ((1 - lambda_)
+    beta_ = np.tile(np.ones(shape=(1, 2)) * lmbda + ((1 - lmbda)
                     * (np.ones(shape=(1, 2)) - (np.dot(nij.T, ei)).T) / 2.), [1, 1])
     c1 = np.multiply(alpha, beta_)
     curve = c1.T
