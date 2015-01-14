@@ -24,6 +24,7 @@ Installation
 ```sh
 git clone https://github.com/makokal/navmet.git
 cd navmet
+python setup.py build
 [sudo] python setup.py install
 ```
 

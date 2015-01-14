@@ -4,6 +4,7 @@ import itertools
 import operator
 
 import numpy as np
+from .angle_utils import normalize
 
 
 def count_uniform_intrusions(focal_agent, other_agents, regions=[0.45, 1.2, 3.6]):
@@ -34,27 +35,40 @@ def count_uniform_intrusions(focal_agent, other_agents, regions=[0.45, 1.2, 3.6]
 
     # check that the regions list is strictly monotonically increasing
     assert all(itertools.starmap(operator.le, zip(regions, regions[1:]))) is True,\
-         "Regions list must be monotonically increasing"
+        "Regions list must be monotonically increasing"
 
     ic, pc, sc = 0, 0, 0    # TODO - allow more ranges
     if isinstance(other_agents, list):
         other_agents = np.array(other_agents)
 
+    # for agent in other_agents:
+    #     isc = inside_uniform_region(focal_agent, agent, radius=regions[2])
+    #     if not isc:
+    #         continue
+
+    #     ipc = inside_uniform_region(focal_agent, agent, radius=regions[1])
+    #     if not ipc:
+    #         sc += 1
+    #         continue
+
+    #     iic = inside_uniform_region(focal_agent, agent, radius=regions[0])
+    #     if iic:
+    #         ic += 1
+    #     elif not iic and ipc:
+    #         pc += 1
+
     for agent in other_agents:
         isc = inside_uniform_region(focal_agent, agent, radius=regions[2])
-        if not isc:
-            continue
+        if isc:
+            sc += 1
 
         ipc = inside_uniform_region(focal_agent, agent, radius=regions[1])
-        if not ipc:
-            sc += 1
-            continue
+        if ipc:
+            pc += 1
 
         iic = inside_uniform_region(focal_agent, agent, radius=regions[0])
         if iic:
             ic += 1
-        elif not iic and ipc:
-            pc += 1
 
     return ic, pc, sc
 
@@ -86,7 +100,7 @@ def count_anisotropic_intrusions(focal_agent, other_agents, aks):
 
     # check that the regions list is strictly monotonically increasing
     assert all(itertools.starmap(operator.le, zip(aks, aks[1:]))) is True,\
-         "aks list must be monotonically increasing"
+        "aks list must be monotonically increasing"
 
     ic, pc, sc = 0, 0, 0    # TODO - allow more ranges
     if isinstance(other_agents, list):
@@ -132,8 +146,8 @@ def inside_uniform_region(focal_agent, other_agent, radius):
 
     """
 
-    los_distance = np.linalg.norm(focal_agent[0:2] - other_agent[0:2])
-    if los_distance <= radius and los_distance > 1e-12:
+    los_distance = edist(focal_agent, other_agent)
+    if los_distance <= radius and los_distance > 1e-24:
         return True
     else:
         return False
@@ -171,16 +185,16 @@ def inside_anisotropic_region(focal_agent, other_agent, ak=1., bk=1., lmbda=0.4,
     """
 
     # euclidean distance between the agents
-    dij = np.linalg.norm(focal_agent[0:2] - other_agent[0:2])
+    dij = edist(focal_agent, other_agent)
 
-    look_vector = np.array([-focal_agent.vx, -focal_agent.vy])
+    look_vector = np.array([-focal_agent[2], -focal_agent[3]])
     len_lv = np.linalg.norm(look_vector)
 
     if len_lv == 0.0:
         ei = look_vector
     else:
         ei = look_vector / len_lv
-    phi = normalize(math.atan2(other_agent.y - focal_agent.y, other_agent.x - focal_agent.x))
+    phi = normalize(np.arctan2(other_agent[1] - focal_agent[1], other_agent[0] - focal_agent[0]))
     nij = np.array([np.cos(phi), np.sin(phi)])  # normalized vector pointing from j to i
 
     alpha = ak * np.exp((rij - dij) / bk) * nij
@@ -194,3 +208,18 @@ def inside_anisotropic_region(focal_agent, other_agent, ak=1., bk=1., lmbda=0.4,
         return True
     else:
         return False
+
+
+def edist(v1, v2):
+    """
+    Euclidean distance between the two [abs,ord] vectors v1 and v2
+
+    Parameters
+    -----------
+    v1,v2 : float array
+            two [abs, ord] points
+    Returns
+    -----------
+    distance between v1 and v2
+    """
+    return np.sqrt((v1[0] - v2[0])**2 + (v1[1] - v2[1])**2)

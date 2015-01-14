@@ -38,7 +38,7 @@ def path_length(trajectory, timestamped=False):
     return path_length
 
 
-def cumulative_heading_changes(trajectory, timestamped=False, degrees=False):
+def cumulative_heading_changes(trajectory, timestamped=False, degrees=False, xytheta=False):
     """
     Count the cumulative heading changes of in the trajectory
     measured by angles between succesive waypoints. Gives
@@ -64,10 +64,14 @@ def cumulative_heading_changes(trajectory, timestamped=False, degrees=False):
     assert trajectory.ndim == 2, "Trajectory must be a two dimensional array"
 
     ipoint = trajectory[0, :]
-    if timestamped:
-        theta_old = normalize(np.arctan2(ipoint[4], ipoint[3]))
+
+    if xytheta:
+        theta_old = ipoint[2]
     else:
-        theta_old = normalize(np.arctan2(ipoint[3], ipoint[2]))
+        if timestamped:
+            theta_old = normalize(np.arctan2(ipoint[4], ipoint[3]))
+        else:
+            theta_old = normalize(np.arctan2(ipoint[3], ipoint[2]))
 
     theta_acc = 0
     for i, j in itertools.izip(xrange(trajectory.shape[0]), xrange(1, trajectory.shape[0])):
