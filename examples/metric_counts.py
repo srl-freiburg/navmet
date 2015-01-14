@@ -3,14 +3,15 @@
 import os
 import sys
 # local devel testing without installing the package
-sys.path = [os.path.abspath(os.path.join(os.getcwd(),'..')), ] + sys.path
+sys.path = [os.path.abspath(os.path.join(os.getcwd(), '..')), ] + sys.path
 
 
 import navmet
 import numpy as np
 import matplotlib.pyplot as plt
+plt.style.use('ggplot')
+
 from matplotlib.patches import Ellipse, Circle
-import seaborn as sns
 
 ## Subjective metrics
 # load some sample agents

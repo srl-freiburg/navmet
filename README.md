@@ -1,5 +1,5 @@
 `navmet` Robot Navigation Metrics
-================================= 
+======================================
 
 A set of objective and subjective metrics for evaluating robot navigation behavior especially in crowded environments where socially compliant behavior is required.
 
@@ -18,7 +18,6 @@ Requirements
 ---------------
 1. Numpy
 2. Matplotlib, optional (only used in examples)
-3. Seaborn, optional (only used in examples)
 
 Installation
 --------------
@@ -39,12 +38,8 @@ See `examples` folder
 
 Roadmap
 ---------
-[ ] Adding more objective metrics
-  [ ] Various timings for timestamped trajectories
-  [ ] 'Energy type' metrics
-[ ] More subjective metrics
-  [ ] Elliptical regions as in Proxemics
-  [ ] Additional measures
-
-
+[ ] Adding more objective and subjectibve metrics
+[ ] Various timings for timestamped trajectories
+[ ] 'Energy type' metrics
+[ ] Elliptical regions as in Proxemics
 
