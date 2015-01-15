@@ -7,7 +7,7 @@ import numpy as np
 from .angle_utils import normalize
 
 
-def count_uniform_intrusions(focal_agent, other_agents, regions=[0.45, 1.2, 3.6]):
+def count_uniform_intrusions(focal_agent, other_agents, regions=[0.45, 1.2, 3.6], exlusive=True):
     """
     Count the number of intrusions into various uniform regions around
     a focal agent.
@@ -22,6 +22,8 @@ def count_uniform_intrusions(focal_agent, other_agents, regions=[0.45, 1.2, 3.6]
     regions : list of float, optional (default: [0.45, 1.2, 3.6])
         Radii of regions of the uniform region around the focal_agent to consider,
         defaults to Proxemics distances (intimate, personal, social)
+    exlusive: bool
+        Flag for whether to coint intrusions in a mutually exclusive sense of cumulative
 
     Returns
     --------
@@ -41,34 +43,35 @@ def count_uniform_intrusions(focal_agent, other_agents, regions=[0.45, 1.2, 3.6]
     if isinstance(other_agents, list):
         other_agents = np.array(other_agents)
 
-    # for agent in other_agents:
-    #     isc = inside_uniform_region(focal_agent, agent, radius=regions[2])
-    #     if not isc:
-    #         continue
+    if exlusive:
+        for agent in other_agents:
+            isc = inside_uniform_region(focal_agent, agent, radius=regions[2])
+            if not isc:
+                continue
 
-    #     ipc = inside_uniform_region(focal_agent, agent, radius=regions[1])
-    #     if not ipc:
-    #         sc += 1
-    #         continue
+            ipc = inside_uniform_region(focal_agent, agent, radius=regions[1])
+            if not ipc:
+                sc += 1
+                continue
 
-    #     iic = inside_uniform_region(focal_agent, agent, radius=regions[0])
-    #     if iic:
-    #         ic += 1
-    #     elif not iic and ipc:
-    #         pc += 1
+            iic = inside_uniform_region(focal_agent, agent, radius=regions[0])
+            if iic:
+                ic += 1
+            elif not iic and ipc:
+                pc += 1
+    else:
+        for agent in other_agents:
+            isc = inside_uniform_region(focal_agent, agent, radius=regions[2])
+            if isc:
+                sc += 1
 
-    for agent in other_agents:
-        isc = inside_uniform_region(focal_agent, agent, radius=regions[2])
-        if isc:
-            sc += 1
+            ipc = inside_uniform_region(focal_agent, agent, radius=regions[1])
+            if ipc:
+                pc += 1
 
-        ipc = inside_uniform_region(focal_agent, agent, radius=regions[1])
-        if ipc:
-            pc += 1
-
-        iic = inside_uniform_region(focal_agent, agent, radius=regions[0])
-        if iic:
-            ic += 1
+            iic = inside_uniform_region(focal_agent, agent, radius=regions[0])
+            if iic:
+                ic += 1
 
     return ic, pc, sc
 

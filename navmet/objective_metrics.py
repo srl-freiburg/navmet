@@ -94,3 +94,76 @@ def cumulative_heading_changes(trajectory, timestamped=False, degrees=False, xyt
         return theta_acc
     else:
         return np.degrees(theta_acc)
+
+
+def edge_crossing(x1, y1, x2, y2, x3, y3, x4, y4):
+    """
+    Check if the edges [[x1,y1][x2,y2]] and [[x3,y3][x4,y4]] cross themselves
+
+    Parameters
+    -------------
+    x1,y1,x2,y2,x3,y3,x4,y4 : float
+        coordonates of the points defining the edges
+
+    Returns
+    -----------
+    cross : int
+        0 (False) or 1 (True)
+    """
+    if x2 == x1:
+        if x3 == x4:
+            if x1 != x3:
+                return 0
+            elif max(y3, y4) < min(y1, y2) or max(y1, y2) < min(y3, y4):
+                return 0
+            else:
+                return 1
+        else:
+            a2 = (y4 - y3) / (x4 - x3)
+            b2 = y3 - (a2 * x3)
+            if a2 == 0:
+                if min(y1, y2) > b2 or max(y1, y2) < b2:
+                    return 0
+                elif x2 <= max(x3, x4) and x2 >= min(x3, x4):
+                    return 1
+                else:
+                    return 0
+            elif a2 * x1 + b2 <= min(max(y3, y4), max(y1, y2)) and a2 * x1 + b2 >= max(min(y3, y4), min(y1, y2)):
+                return 1
+            else:
+                return 0
+    elif x3 == x4:
+        if x1 == x2:
+            if x1 != x3:
+                return 0
+            elif max(y3, y4) < min(y1, y2) or max(y1, y2) < min(y3, y4):
+                return 0
+            else:
+                return 1
+        else:
+            a1 = (y2 - y1) / (x2 - x1)
+            b1 = y1 - (a1 * x1)
+            if a1 == 0:
+                if min(y3, y4) > b1 or max(y3, y4) < b1:
+                    return 0
+                elif x3 <= max(x1, x2) and x3 >= min(x1, x2):
+                    return 1
+                else:
+                    return 0
+            elif a1 * x3 + b1 <= min(max(y1, y2), max(y3, y4)) and a1 * x3 + b1 >= max(min(y1, y2), min(y3, y4)):
+                return 1
+            else:
+                return 0
+    else:
+        a1 = (y2 - y1) / (x2 - x1)
+        a2 = (y4 - y3) / (x4 - x3)
+        if a1 == a2:
+            return 0
+        else:
+            b2 = y3 - (a2 * x3)
+            b1 = y1 - (a1 * x1)
+            xcommun = (b2 - b1) / (a1 - a2)
+            if xcommun >= max(min(x1, x2), min(x3, x4)) and xcommun <= min(max(x1, x2), max(x3, x4)):
+                return 1
+            else:
+                return 0
