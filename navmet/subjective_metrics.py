@@ -5,6 +5,7 @@ import operator
 
 import numpy as np
 from .angle_utils import normalize
+from .general_utils import edist, action_disturbance
 
 
 def count_uniform_intrusions(focal_agent, other_agents, regions=[0.45, 1.2, 3.6], exlusive=True):
@@ -128,6 +129,19 @@ def count_anisotropic_intrusions(focal_agent, other_agents, aks):
     return ic, pc, sc
 
 
+def social_relation_disturbance(trajectory, relations):
+    """
+    """
+    srd = 0.0
+    for i, j in itertools.izip(xrange(trajectory.shape[0]), xrange(1, trajectory.shape[0])):
+        here, there = trajectory[i, 0:2], trajectory[j, 0:2]
+
+        for e in relations:
+            ad = action_disturbance(action=(here, there), relation=(e[:2], e[2:]), sigma=0.2, discount=0.99)
+            srd += ad
+    return srd
+
+
 def inside_uniform_region(focal_agent, other_agent, radius):
     """
     Check if an agent is inside a given uniform range of another agent as a measure
@@ -211,18 +225,3 @@ def inside_anisotropic_region(focal_agent, other_agent, ak=1., bk=1., lmbda=0.4,
         return True
     else:
         return False
-
-
-def edist(v1, v2):
-    """
-    Euclidean distance between the two [abs,ord] vectors v1 and v2
-
-    Parameters
-    -----------
-    v1,v2 : float array
-            two [abs, ord] points
-    Returns
-    -----------
-    distance between v1 and v2
-    """
-    return np.sqrt((v1[0] - v2[0])**2 + (v1[1] - v2[1])**2)
