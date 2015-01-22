@@ -143,3 +143,82 @@ def action_disturbance(action, relation, sigma=0.2, discount=0.99):
         feature += eval_gaussian(stride, mu=0.0, sigma=sigma) * discount**i
 
     return feature
+
+
+def distance_segment(x, xs, xe):
+    xa = xs[0]
+    ya = xs[1]
+    xb = xe[0]
+    yb = xe[1]
+    xp = x[0]
+    yp = x[1]
+
+    # x-coordinates
+    A = xb-xa
+    B = yb-ya
+    C = yp*B+xp*A
+    a = 2*((B*B)+(A*A))
+    b = -4*A*C+(2*yp+ya+yb)*A*B-(2*xp+xa+xb)*(B*B)
+    c = 2*(C*C)-(2*yp+ya+yb)*C*B+(yp*(ya+yb)+xp*(xa+xb))*(B*B)
+    x1 = (-b + np.sqrt((b*b)-4*a*c))/(2*a)
+    x2 = (-b - np.sqrt((b*b)-4*a*c))/(2*a)
+
+    # y-coordinates
+    A = yb-ya
+    B = xb-xa
+    C = xp*B+yp*A
+    a = 2*((B*B)+(A*A))
+    b = -4*A*C+(2*xp+xa+xb)*A*B-(2*yp+ya+yb)*(B*B)
+    c = 2*(C*C)-(2*xp+xa+xb)*C*B+(xp*(xa+xb)+yp*(ya+yb))*(B*B)
+    y1 = (-b + np.sqrt((b*b)-4*a*c))/(2*a)
+    y2 = (-b - np.sqrt((b*b)-4*a*c))/(2*a)
+
+    # Put point candidates together
+    xfm1 = np.array([x1, y1])
+    xfm2 = np.array([x2, y2])
+    xfm3 = np.array([x1, y2])
+    xfm4 = np.array([x2, y1])
+
+    dvec = list()
+    dvec.append(edist(xfm1, x))
+    dvec.append(edist(xfm2, x))
+    dvec.append(edist(xfm3, x))
+    dvec.append(edist(xfm4, x))
+
+    dmax = -1
+    imax = -1
+    for i in xrange(4):
+        if dvec[i] > dmax:
+            dmax = dvec[i]
+            imax = i
+
+    xf = xfm1
+    if imax == 0:
+        xf = xfm1
+    elif imax == 1:
+        xf = xfm2
+    elif imax == 2:
+        xf = xfm3
+    elif imax == 3:
+        xf = xfm4
+
+    # inside = (sign((xs-xf)'*(xe-xf))<=0);
+    xs_xf = np.array([xs[0]-xf[0], xs[1]-xf[1]])
+    xe_xf = np.array([xe[0]-xf[0], xe[1]-xf[1]])
+
+    dotp = np.dot(xe_xf, xs_xf)
+    # dotp = (xs_xf[0] * xe_xf[0]) + (xs_xf[1] * xe_xf[1])
+
+    inside = False
+    if dotp <= 0.0:
+        inside = True
+
+    return dmax, inside
+
+
+def gaussianx(x, mu, sigma=0.2):
+    """
+    Evaluate a Gaussian at a point
+    """
+    fg = (1.0 / (sigma * np.sqrt(2*np.pi))) * np.exp(-(x - mu)*(x - mu) / (2.0 * sigma * sigma))
+    return fg / 1.0

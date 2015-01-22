@@ -5,10 +5,10 @@ import operator
 
 import numpy as np
 from .angle_utils import normalize
-from .general_utils import edist, action_disturbance
+from .general_utils import edist, action_disturbance, distance_segment, gaussianx
 
 
-def count_uniform_intrusions(focal_agent, other_agents, regions=[0.45, 1.2, 3.6], exlusive=True):
+def count_uniform_intrusions(focal_agent, other_agents, regions=[0.45, 1.2, 3.6], exclusive=True):
     """
     Count the number of intrusions into various uniform regions around
     a focal agent.
@@ -23,7 +23,7 @@ def count_uniform_intrusions(focal_agent, other_agents, regions=[0.45, 1.2, 3.6]
     regions : list of float, optional (default: [0.45, 1.2, 3.6])
         Radii of regions of the uniform region around the focal_agent to consider,
         defaults to Proxemics distances (intimate, personal, social)
-    exlusive: bool
+    exclusive: bool
         Flag for whether to coint intrusions in a mutually exclusive sense of cumulative
 
     Returns
@@ -44,7 +44,7 @@ def count_uniform_intrusions(focal_agent, other_agents, regions=[0.45, 1.2, 3.6]
     if isinstance(other_agents, list):
         other_agents = np.array(other_agents)
 
-    if exlusive:
+    if exclusive:
         for agent in other_agents:
             isc = inside_uniform_region(focal_agent, agent, radius=regions[2])
             if not isc:
@@ -77,7 +77,7 @@ def count_uniform_intrusions(focal_agent, other_agents, regions=[0.45, 1.2, 3.6]
     return ic, pc, sc
 
 
-def count_anisotropic_intrusions(focal_agent, other_agents, aks):
+def count_anisotropic_intrusions(focal_agent, other_agents, aks, exclusive=True):
     """
     Count the number of intrusions into various uniform regions around
     a focal agent.
@@ -110,21 +110,35 @@ def count_anisotropic_intrusions(focal_agent, other_agents, aks):
     if isinstance(other_agents, list):
         other_agents = np.array(other_agents)
 
-    for agent in other_agents:
-        isc = inside_anisotropic_region(focal_agent, agent, ak=aks[2])
-        if not isc:
-            continue
+    if exclusive:
+        for agent in other_agents:
+            isc = inside_anisotropic_region(focal_agent, agent, ak=aks[2])
+            if not isc:
+                continue
 
-        ipc = inside_anisotropic_region(focal_agent, agent, ak=aks[1])
-        if not ipc:
-            sc += 1
-            continue
+            ipc = inside_anisotropic_region(focal_agent, agent, ak=aks[1])
+            if not ipc:
+                sc += 1
+                continue
 
-        iic = inside_anisotropic_region(focal_agent, agent, ak=aks[0])
-        if iic:
-            ic += 1
-        elif not iic and ipc:
-            pc += 1
+            iic = inside_anisotropic_region(focal_agent, agent, ak=aks[0])
+            if iic:
+                ic += 1
+            elif not iic and ipc:
+                pc += 1
+    else:
+        for agent in other_agents:
+            isc = inside_anisotropic_region(focal_agent, agent, ak=aks[2])
+            if isc:
+                sc += 1
+
+            ipc = inside_anisotropic_region(focal_agent, agent, ak=aks[1])
+            if ipc:
+                pc += 1
+
+            iic = inside_anisotropic_region(focal_agent, agent, ak=aks[0])
+            if iic:
+                ic += 1
 
     return ic, pc, sc
 
@@ -133,12 +147,18 @@ def social_relation_disturbance(trajectory, relations):
     """
     """
     srd = 0.0
-    for i, j in itertools.izip(xrange(trajectory.shape[0]), xrange(1, trajectory.shape[0])):
-        here, there = trajectory[i, 0:2], trajectory[j, 0:2]
+    for i in xrange(trajectory.shape[0]):
+        here = trajectory[i, 0:2]
 
         for e in relations:
-            ad = action_disturbance(action=(here, there), relation=(e[:2], e[2:]), sigma=0.2, discount=0.99)
-            srd += ad
+            xaction = here
+            sdist, inside = distance_segment(xaction, e[:2], e[2:])
+            if inside:
+                srd += gaussianx(sdist, mu=0.0, sigma=0.4)
+            else:
+                ed = min(edist(xaction, e[:2]), edist(xaction, e[2:]))
+                srd += gaussianx(ed, mu=0.0, sigma=0.4)
+
     return srd
 
 
