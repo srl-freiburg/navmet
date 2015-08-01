@@ -25,22 +25,19 @@ Installation
 git clone https://github.com/makokal/navmet.git
 cd navmet
 python setup.py build
-[sudo] python setup.py install
+python setup.py develop  # for local devel install
+[sudo] python setup.py install  # for global install
 ```
-
-Or simply add the path (useful for devel sessions)
-
 
 Usage
 --------
 See `examples` folder
 
 
-
 Roadmap
 ---------
-[ ] Adding more objective and subjectibve metrics
-[ ] Various timings for timestamped trajectories
-[ ] 'Energy type' metrics
-[ ] Elliptical regions as in Proxemics
+- [ ] Adding more objective and subjectibve metrics
+- [ ] Various timings for timestamped trajectories
+- [ ] 'Energy type' metrics
+- [ ] Elliptical regions as in Proxemics
 
