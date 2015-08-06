@@ -1,23 +1,22 @@
 from setuptools import setup
+import numpy as np
 
 import os
 
 if os.path.exists('MANIFEST'):
     os.remove('MANIFEST')
 
-setup(name="sadf",
-      version="0.2",
-      install_requires=["numpy"],
-      extras_require={
-          'plotting': ["matplotlib"]
-      },
-      packages=['navmet'],
+setup(name="navmet",
+      version="0.1.0",
+      install_requires=["numpy", "scipy", "matplotlib"],
+      packages=['navmet', 'navmet.tests'],
       include_package_data=True,
-      description="Robot navigation metrics for social compliance",
+      description="Robot Navigation Metrics",
       author="Billy Okal",
-      author_email="okal@cs.uni-freiburg.de",
-      url="http://srl.informatik.uni-freiburg.de",
-      license="BSD 2-clause",
+      author_email="sudo@makokal.com",
+      url="https://github.com/srl-freiburg/navmet",
+      license="MIT",
+      use_2to3=True,
       classifiers=['Intended Audience :: Science/Research',
                    'Intended Audience :: Developers',
                    'License :: OSI Approved',
@@ -33,4 +32,5 @@ setup(name="sadf",
                    'Programming Language :: Python :: 3',
                    'Programming Language :: Python :: 3.3',
                    ],
+      include_dirs=[np.get_include()]
       )

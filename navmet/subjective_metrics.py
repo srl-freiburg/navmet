@@ -5,26 +5,28 @@ import operator
 
 import numpy as np
 from .angle_utils import normalize
-from .general_utils import edist, action_disturbance, distance_segment, gaussianx
+from .general_utils import edist, distance_segment, gaussianx
 
 
-def count_uniform_intrusions(focal_agent, other_agents, regions=[0.45, 1.2, 3.6], exclusive=True):
+def count_uniform_intrusions(focal_agent, other_agents,
+                             regions=[0.45, 1.2, 3.6], exclusive=True):
     """
     Count the number of intrusions into various uniform regions around
     a focal agent.
 
     Parameters
     -------------
-    focal_agent : numpy array
+    focal_agent : array-like
         The focal_agent state as a 1D array in format [x, y, vx, vy, ...]
-    other_agents : list of numpy arrays
-        The other agents as a list of 1D arrays in format [[x, y, vx, vy, ...], ...]
-        or a numpy array of shape [agent_features x n_agents]
+    other_agents : array-like
+        The other agents as a list of 1D arrays
     regions : list of float, optional (default: [0.45, 1.2, 3.6])
-        Radii of regions of the uniform region around the focal_agent to consider,
-        defaults to Proxemics distances (intimate, personal, social)
+        Radii of regions of the uniform region around the focal_agent
+        to consider, defaults to Proxemics distances (intimate, personal,
+        social)
     exclusive: bool
-        Flag for whether to coint intrusions in a mutually exclusive sense of cumulative
+        Flag for whether to coint intrusions in a mutually exclusive
+        sense of cumulative
 
     Returns
     --------
@@ -37,7 +39,8 @@ def count_uniform_intrusions(focal_agent, other_agents, regions=[0.45, 1.2, 3.6]
     """
 
     # check that the regions list is strictly monotonically increasing
-    assert all(itertools.starmap(operator.le, zip(regions, regions[1:]))) is True,\
+    monotone = all(itertools.starmap(operator.le, zip(regions, regions[1:])))
+    assert monotone is True,\
         "Regions list must be monotonically increasing"
 
     ic, pc, sc = 0, 0, 0    # TODO - allow more ranges
@@ -77,20 +80,20 @@ def count_uniform_intrusions(focal_agent, other_agents, regions=[0.45, 1.2, 3.6]
     return ic, pc, sc
 
 
-def count_anisotropic_intrusions(focal_agent, other_agents, aks, exclusive=True):
+def count_anisotropic_intrusions(focal_agent, other_agents,
+                                 aks, exclusive=True):
     """
     Count the number of intrusions into various uniform regions around
     a focal agent.
 
     Parameters
     -------------
-    focal_agent : numpy array
+    focal_agent : array-like
         The focal_agent state as a 1D array in format [x, y, vx, vy, ...]
-    other_agents : list of numpy arrays
-        The other agents as a list of 1D arrays in format [[x, y, vx, vy, ...], ...]
-        or a numpy array of shape [agent_features x n_agents]
+    other_agents : array-like
+        The other agents as a list of 1D arrays
     aks : list of float
-        ak parameters of the anisotropic region around the focal_agent to consider,
+        ak parameters of the anisotropic region around the focal_agent
 
     Returns
     --------
@@ -164,8 +167,8 @@ def social_relation_disturbance(trajectory, relations):
 
 def inside_uniform_region(focal_agent, other_agent, radius):
     """
-    Check if an agent is inside a given uniform range of another agent as a measure
-    of intrusion into the space
+    Check if an agent is inside a given uniform range of another agent
+    as a measure of intrusion into the space
 
     Parameters
     -------------
@@ -190,14 +193,17 @@ def inside_uniform_region(focal_agent, other_agent, radius):
         return False
 
 
-def inside_anisotropic_region(focal_agent, other_agent, ak=1., bk=1., lmbda=0.4, rij=0.4):
+def inside_anisotropic_region(focal_agent, other_agent, ak=1., bk=1.,
+                              lmbda=0.4, rij=0.4):
     """
-    Check if an agent is inside a given Anisotropic range of another agent as a measure
-    of intrusion into the space. Anisotropic regions are circles whose shapes are parametrizable
-    as shown;
+    Check if an agent is inside a given Anisotropic range of another agent
+    as a measure of intrusion into the space. Anisotropic regions are circles
+    whose shapes are parametrizable as shown;
 
     .. math::
-        a \cdot b \exp{\left(\\frac{r_{ij} - d_{ij}}{b}\\right)} \mathbf{n}_{ij} \left(\lambda + (1 - \lambda) \\frac{1 + \cos(\\varphi_{ij})}{2}\\right)
+        a \cdot b \exp{\left(\\frac{r_{ij} - d_{ij}}{b}\\right)}
+        \mathbf{n}_{ij} \left(\lambda + (1 - \lambda) \\frac{1 +
+                              \cos(\\varphi_{ij})}{2}\\right)
 
     Parameters
     -------------
@@ -231,12 +237,14 @@ def inside_anisotropic_region(focal_agent, other_agent, ak=1., bk=1., lmbda=0.4,
         ei = look_vector
     else:
         ei = look_vector / len_lv
-    phi = normalize(np.arctan2(other_agent[1] - focal_agent[1], other_agent[0] - focal_agent[0]))
-    nij = np.array([np.cos(phi), np.sin(phi)])  # normalized vector pointing from j to i
+    phi = normalize(np.arctan2(other_agent[1] -
+                    focal_agent[1], other_agent[0] - focal_agent[0]))
+    nij = np.array([np.cos(phi), np.sin(phi)])
 
     alpha = ak * np.exp((rij - dij) / bk) * nij
     beta_ = np.tile(np.ones(shape=(1, 2)) * lmbda + ((1 - lmbda)
-                    * (np.ones(shape=(1, 2)) - (np.dot(nij.T, ei)).T) / 2.), [1, 1])
+                    * (np.ones(shape=(1, 2)) -
+                       (np.dot(nij.T, ei)).T) / 2.), [1, 1])
     c1 = np.multiply(alpha, beta_)
     curve = c1.T
     dc = np.sqrt(curve[0] ** 2 + curve[1] ** 2)

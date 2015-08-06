@@ -28,7 +28,8 @@ def path_length(trajectory, timestamped=False):
     assert trajectory.ndim == 2, "Trajectory must be a two dimensional array"
 
     path_length = 0.0
-    for i, j in itertools.izip(xrange(trajectory.shape[0]), xrange(1, trajectory.shape[0])):
+    for i, j in itertools.izip(range(trajectory.shape[0]),
+                               range(1, trajectory.shape[0])):
         if not timestamped:
             current, nextstep = trajectory[i, 0:2], trajectory[j, 0:2]
         else:
@@ -38,7 +39,8 @@ def path_length(trajectory, timestamped=False):
     return path_length
 
 
-def cumulative_heading_changes(trajectory, timestamped=False, degrees=False, xytheta=False):
+def cumulative_heading_changes(trajectory, timestamped=False,
+                               degrees=False, xytheta=False):
     """
     Count the cumulative heading changes of in the trajectory
     measured by angles between succesive waypoints. Gives
@@ -74,7 +76,8 @@ def cumulative_heading_changes(trajectory, timestamped=False, degrees=False, xyt
             theta_old = normalize(np.arctan2(ipoint[3], ipoint[2]))
 
     theta_acc = 0
-    for i, j in itertools.izip(xrange(trajectory.shape[0]), xrange(1, trajectory.shape[0])):
+    for i, j in itertools.izip(range(trajectory.shape[0]),
+                               range(1, trajectory.shape[0])):
         if not timestamped:
             current, nextstep = trajectory[i, 0:2], trajectory[j, 0:2]
         else:
@@ -128,7 +131,8 @@ def edge_crossing(x1, y1, x2, y2, x3, y3, x4, y4):
                     return 1
                 else:
                     return 0
-            elif a2 * x1 + b2 <= min(max(y3, y4), max(y1, y2)) and a2 * x1 + b2 >= max(min(y3, y4), min(y1, y2)):
+            elif a2 * x1 + b2 <= min(max(y3, y4), max(y1, y2)) and \
+                    a2 * x1 + b2 >= max(min(y3, y4), min(y1, y2)):
                 return 1
             else:
                 return 0
@@ -150,7 +154,8 @@ def edge_crossing(x1, y1, x2, y2, x3, y3, x4, y4):
                     return 1
                 else:
                     return 0
-            elif a1 * x3 + b1 <= min(max(y1, y2), max(y3, y4)) and a1 * x3 + b1 >= max(min(y1, y2), min(y3, y4)):
+            elif a1 * x3 + b1 <= min(max(y1, y2), max(y3, y4)) and \
+                    a1 * x3 + b1 >= max(min(y1, y2), min(y3, y4)):
                 return 1
             else:
                 return 0
@@ -163,7 +168,8 @@ def edge_crossing(x1, y1, x2, y2, x3, y3, x4, y4):
             b2 = y3 - (a2 * x3)
             b1 = y1 - (a1 * x1)
             xcommun = (b2 - b1) / (a1 - a2)
-            if xcommun >= max(min(x1, x2), min(x3, x4)) and xcommun <= min(max(x1, x2), max(x3, x4)):
+            if xcommun >= max(min(x1, x2), min(x3, x4)) and \
+                    xcommun <= min(max(x1, x2), max(x3, x4)):
                 return 1
             else:
                 return 0

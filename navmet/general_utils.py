@@ -82,9 +82,11 @@ def rotate2d(theta, px, py, ox, oy, direction='counter_clockwise'):
 def angle_horizontal(p1, p2):
     dx = p2[0]-p1[0]
     if dx > 0.0:
-        rel_theta = normalize(vec_angle(p1, p2, (p1[0], p1[1]), (p1[0]+1, p1[1])))
+        rel_theta = normalize(vec_angle(p1, p2,
+                              (p1[0], p1[1]), (p1[0]+1, p1[1])))
     else:
-        rel_theta = normalize(vec_angle(p1, p2, (p1[0], p1[1]), (p1[0]-1, p1[1])))
+        rel_theta = normalize(vec_angle(p1, p2, (p1[0], p1[1]),
+                              (p1[0]-1, p1[1])))
     return rel_theta
 
 
@@ -115,7 +117,7 @@ def action_disturbance(action, relation, sigma=0.2, discount=0.99):
     a1r = rotate2d(theta, a1[0], a1[1], ox, oy, direction)
     a2r = rotate2d(theta, a2[0], a2[1], ox, oy, direction)
 
-    # Rotate the action as well to match the new position of the social relation
+    # Rotate the action as well to match the new pose of the social relation
     pts = list()
     for p in action:
         pts.append(rotate2d(theta, p[0], p[1], ox, oy, direction))
@@ -124,18 +126,20 @@ def action_disturbance(action, relation, sigma=0.2, discount=0.99):
     danger_actions = list()
     for i, j in itertools.izip(pts, pts[1:]):
         # check the y coordinates
-        if (i[1] <= (a1r[1] + sigma) and i[1] >= (a1r[1] - sigma)) or (j[1] <= (a1r[1] + sigma) and j[1] >= (a1r[1] - sigma)):
+        if (i[1] <= (a1r[1] + sigma) and i[1] >= (a1r[1] - sigma)) or\
+                (j[1] <= (a1r[1] + sigma) and j[1] >= (a1r[1] - sigma)):
             # check x coordinates
             if a1r[0] < a2r[0]:
-                if (i[0] >= a1r[0] and i[0] <= a2r[0]) or (j[0] >= a1r[0] and j[0] <= a2r[0]):
+                if (i[0] >= a1r[0] and i[0] <= a2r[0]) or (j[0] >= a1r[0] and
+                                                           j[0] <= a2r[0]):
                     current_action = (i, j)
                     danger_actions.append(current_action)
             elif a1r[0] > a2r[0]:
-                if (i[0] <= a1r[0] and i[0] >= a2r[0]) or (j[0] <= a1r[0] and j[0] >= a2r[0]):
+                if (i[0] <= a1r[0] and i[0] >= a2r[0]) or (j[0] <= a1r[0] and
+                                                           j[0] >= a2r[0]):
                     current_action = (i, j)
                     danger_actions.append(current_action)
 
-    # Now process the dangerous action and compute the feature on them (evaluate the gaussian)
     feature = 0.0
     for i, da in enumerate(danger_actions):
         # find the distance to the line (for use in gaussian evaluation)
@@ -220,5 +224,6 @@ def gaussianx(x, mu, sigma=0.2):
     """
     Evaluate a Gaussian at a point
     """
-    fg = (1.0 / (sigma * np.sqrt(2*np.pi))) * np.exp(-(x - mu)*(x - mu) / (2.0 * sigma * sigma))
+    fg = (1.0 / (sigma * np.sqrt(2*np.pi))) *\
+        np.exp(-(x - mu)*(x - mu) / (2.0 * sigma * sigma))
     return fg / 1.0

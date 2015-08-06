@@ -3,6 +3,9 @@ from __future__ import division
 import math
 
 
+__all__ = ['normalize', 'addangles', 'subangles']
+
+
 def normalize(theta, start=0):
     """
     Normalize an angle to be in the range :math:`[0, 2\pi]`
