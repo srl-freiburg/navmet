@@ -4,8 +4,8 @@ import itertools
 import operator
 
 import numpy as np
-from .angle_utils import normalize
-from .general_utils import edist, distance_segment, gaussianx
+
+from .utils import normalize, edist, distance_segment, gaussianx
 
 
 def count_uniform_intrusions(focal_agent, other_agents,

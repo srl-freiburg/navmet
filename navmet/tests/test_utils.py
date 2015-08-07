@@ -3,9 +3,9 @@ from numpy.testing import assert_equal
 
 import numpy as np
 
-from navmet.angle_utils import normalize
-from navmet.angle_utils import addangles
-from navmet.angle_utils import subangles
+from navmet.utils import normalize
+from navmet.utils import addangles
+from navmet.utils import subangles
 
 
 def test_norm_angle():
