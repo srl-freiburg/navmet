@@ -100,21 +100,43 @@ def edist(v1, v2):
     return np.hypot((v1[0] - v2[0]), (v1[1] - v2[1]))
 
 
-def distance_segment(point, line_start, line_end):
-    """ Distance from a point to a line segment
-
-    Distance between a point `point` and a line segment defined by two points
-    `line_start` and `line_end`. Additionally gives information of whether
-    the point lies within the perpendicular lines from either end of the
-    line segment.
-
+def anisotropic_distance(focal_agent, other_agent,
+                         phi_ij=None, ak=2.48, bk=1.0,
+                         lambda_=0.4, rij=0.9):
     """
-    xa = line_start[0]
-    ya = line_start[1]
-    xb = line_end[0]
-    yb = line_end[1]
-    xp = point[0]
-    yp = point[1]
+    Anisotropic distance based on the Social Force Model (SFM)
+    model of pedestrian dynamics.
+    """
+    ei = np.array([-focal_agent[2], -focal_agent[3]])
+    length_ei = np.linalg.norm(ei)
+    if length_ei > 1e-24:
+        ei = ei / length_ei
+
+    if phi_ij is None:
+        phi = np.arctan2(other_agent[1] - focal_agent[1],
+                         other_agent[0] - focal_agent[0])
+    else:
+        phi = phi_ij
+
+    dij = edist(focal_agent, other_agent)
+    nij = np.array([np.cos(phi), np.sin(phi)])
+    ns = 2
+    alpha = ak * np.exp((rij - dij) / bk) * nij
+    beta_ = np.tile(np.ones(shape=(1, ns)) * lambda_ + ((1 - lambda_)
+                    * (np.ones(shape=(1, ns)) - (np.dot(nij.T, ei)).T) / 2.),
+                    [1, 1])
+    curve = np.multiply(alpha, beta_).T
+    dc = np.hypot(curve[0], curve[1])
+    return dc
+
+
+def distance_to_segment(x, xs, xe):
+    xa = xs[0]
+    ya = xs[1]
+    xb = xe[0]
+    yb = xe[1]
+    xp = x[0]
+    yp = x[1]
 
     # x-coordinates
     A = xb-xa
@@ -123,6 +145,8 @@ def distance_segment(point, line_start, line_end):
     a = 2*((B*B)+(A*A))
     b = -4*A*C+(2*yp+ya+yb)*A*B-(2*xp+xa+xb)*(B*B)
     c = 2*(C*C)-(2*yp+ya+yb)*C*B+(yp*(ya+yb)+xp*(xa+xb))*(B*B)
+    if b*b < 4*a*c:
+        return None, False
     x1 = (-b + np.sqrt((b*b)-4*a*c))/(2*a)
     x2 = (-b - np.sqrt((b*b)-4*a*c))/(2*a)
 
@@ -133,24 +157,26 @@ def distance_segment(point, line_start, line_end):
     a = 2*((B*B)+(A*A))
     b = -4*A*C+(2*xp+xa+xb)*A*B-(2*yp+ya+yb)*(B*B)
     c = 2*(C*C)-(2*xp+xa+xb)*C*B+(xp*(xa+xb)+yp*(ya+yb))*(B*B)
+    if b*b < 4*a*c:
+        return None, False
     y1 = (-b + np.sqrt((b*b)-4*a*c))/(2*a)
     y2 = (-b - np.sqrt((b*b)-4*a*c))/(2*a)
 
     # Put point candidates together
-    xfm1 = np.array([x1, y1])
-    xfm2 = np.array([x2, y2])
-    xfm3 = np.array([x1, y2])
-    xfm4 = np.array([x2, y1])
+    xfm1 = [x1, y1]
+    xfm2 = [x2, y2]
+    xfm3 = [x1, y2]
+    xfm4 = [x2, y1]
 
     dvec = list()
-    dvec.append(edist(xfm1, point))
-    dvec.append(edist(xfm2, point))
-    dvec.append(edist(xfm3, point))
-    dvec.append(edist(xfm4, point))
+    dvec.append(edist(xfm1, x))
+    dvec.append(edist(xfm2, x))
+    dvec.append(edist(xfm3, x))
+    dvec.append(edist(xfm4, x))
 
-    dmax = -1
+    dmax = -1.0
     imax = -1
-    for i in xrange(4):
+    for i in range(4):
         if dvec[i] > dmax:
             dmax = dvec[i]
             imax = i
@@ -165,10 +191,13 @@ def distance_segment(point, line_start, line_end):
     elif imax == 3:
         xf = xfm4
 
-    line_start_xf = np.array([line_start[0]-xf[0], line_start[1]-xf[1]])
-    line_end_xf = np.array([line_end[0]-xf[0], line_end[1]-xf[1]])
-    dotp = np.dot(line_end_xf, line_start_xf)
-    inside = np.sign(dotp)
+    xs_xf = [xs[0]-xf[0], xs[1]-xf[1]]
+    xe_xf = [xe[0]-xf[0], xe[1]-xf[1]]
+    dotp = (xs_xf[0] * xe_xf[0]) + (xs_xf[1] * xe_xf[1])
+
+    inside = False
+    if dotp <= 0.0:
+        inside = True
 
     return dmax, inside
 
