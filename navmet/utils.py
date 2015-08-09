@@ -96,27 +96,43 @@ def edist(v1, v2):
     -----------
     dist : float
         distance between v1 and v2
+
     """
     return np.hypot((v1[0] - v2[0]), (v1[1] - v2[1]))
 
 
-def anisotropic_distance(focal_agent, other_agent,
-                         phi_ij=None, ak=2.48, bk=1.0,
-                         lambda_=0.4, rij=0.9):
-    """
-    Anisotropic distance based on the Social Force Model (SFM)
+def adist(focal_agent, other_agent, ak=2.48, bk=1.0, lambda_=0.4, rij=0.9):
+    """ Anisotropic distance between two oriented poses
+
+    Anisotropic distance based on the Social Force Model (SFM) [TODO - cite]
     model of pedestrian dynamics.
+
+    .. math::
+        a \cdot b \exp{\left(\\frac{r_{ij} - d_{ij}}{b}\\right)}
+        \mathbf{n}_{ij} \left(\lambda + (1 - \lambda) \\frac{1 +
+                              \cos(\\varphi_{ij})}{2}\\right)
+
+    Parameters
+    -----------
+    focal_agent, other_agent : array-like
+        Vector of poses (including orientation information as vx, vy)
+    ak, bk, lambda_, rij : float
+        Parameters of the anisotropic model
+
+
+    Returns
+    ----------
+    dist : float
+        Distance between the two poses
+
     """
     ei = np.array([-focal_agent[2], -focal_agent[3]])
     length_ei = np.linalg.norm(ei)
     if length_ei > 1e-24:
         ei = ei / length_ei
 
-    if phi_ij is None:
-        phi = np.arctan2(other_agent[1] - focal_agent[1],
-                         other_agent[0] - focal_agent[0])
-    else:
-        phi = phi_ij
+    phi = np.arctan2(other_agent[1] - focal_agent[1],
+                     other_agent[0] - focal_agent[0])
 
     dij = edist(focal_agent, other_agent)
     nij = np.array([np.cos(phi), np.sin(phi)])
@@ -130,7 +146,7 @@ def anisotropic_distance(focal_agent, other_agent,
     return dc
 
 
-def distance_to_segment(x, xs, xe):
+def distance_to_segment(x, (xs, xe)):
     xa = xs[0]
     ya = xs[1]
     xb = xe[0]
@@ -202,10 +218,31 @@ def distance_to_segment(x, xs, xe):
     return dmax, inside
 
 
-def gaussianx(x, mu, sigma=0.2):
+def extract_links(persons, groups):
+    """" Extract engagement links from grouping information
+
+    Given poses of persons and grouping information in form of person ids per
+    group, this method extracts line segments representing the engagement
+    links between the persons.
+
+    Parameters
+    ----------
+    persons : dict
+        Dictionary of person poses indexed by id
+    groups : array-like
+        2D array with each row containing ids of a pairwise grouping. For
+        groups with more than 2 persons, multiple rows are used for every to
+        represent every pairing possible
+
+    Returns
+    --------
+    elines : array-like
+        An a array of line segments, each represented by a tuple of start and
+        end points
     """
-    Evaluate a Gaussian at a point
-    """
-    fg = (1.0 / (sigma * np.sqrt(2*np.pi))) *\
-        np.exp(-(x - mu)*(x - mu) / (2.0 * sigma * sigma))
-    return fg / 1.0
+    elines = []
+    for [i, j] in groups:
+        line = ((persons[i][0], persons[i][1]), (persons[j][0], persons[j][1]))
+        elines.append(line)
+
+    return elines

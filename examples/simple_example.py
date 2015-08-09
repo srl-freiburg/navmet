@@ -44,7 +44,7 @@ def simple_example():
     plt.axis('equal')
 
     # --- Subjective
-    ic, pc, sc = navmet.count_uniform_intrusions(robot, persons)
+    ic, pc, sc = navmet.personal_disturbance(robot, persons)
     print('Instrusion Counts: Intimate = {}, Personal = {}, Social = {}'
           .format(ic, pc, sc))
 
