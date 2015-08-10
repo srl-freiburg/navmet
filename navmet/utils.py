@@ -146,13 +146,31 @@ def adist(focal_agent, other_agent, ak=2.48, bk=1.0, lambda_=0.4, rij=0.9):
     return dc
 
 
-def distance_to_segment(x, (xs, xe)):
-    xa = xs[0]
-    ya = xs[1]
-    xb = xe[0]
-    yb = xe[1]
-    xp = x[0]
-    yp = x[1]
+def distance_to_segment(point, (line_start, line_end)):
+    """ Distance from a point to a line segment
+
+    Compute the distance from a point to a line segment all in 2D.
+    Additionally return a flag indicating if the points lies within the
+    boundary of the two perpendicular lines at the line segment ends
+
+    Parameters
+    -----------
+    point : array-like
+        Point in 2D, (x, y)
+    line_start, line_end : array-like
+        Coordinates of the start and end points of the line sement in 2D
+
+    Returns
+    --------
+    dist : float or None
+        Float value if the point is 'inside' the line segment, else None
+    inside : bool
+        Flag indicating if the point is 'inside' the line segment
+
+    """
+    xa, ya = line_start[0], line_start[1]
+    xb, yb = line_end[0], line_end[1]
+    xp, yp = point[0], point[1]
 
     # x-coordinates
     A = xb-xa
@@ -179,43 +197,22 @@ def distance_to_segment(x, (xs, xe)):
     y2 = (-b - np.sqrt((b*b)-4*a*c))/(2*a)
 
     # Put point candidates together
-    xfm1 = [x1, y1]
-    xfm2 = [x2, y2]
-    xfm3 = [x1, y2]
-    xfm4 = [x2, y1]
+    candidates = ((x1, y2), (x2, y2), (x1, y2), (x2, y1))
+    distances = (edist(candidates[0], point), edist(candidates[1], point),
+                 edist(candidates[2], point), edist(candidates[3], point))
+    max_index = np.argmax(distances)
+    cand = candidates[max_index]
+    dist = distances[max_index]
 
-    dvec = list()
-    dvec.append(edist(xfm1, x))
-    dvec.append(edist(xfm2, x))
-    dvec.append(edist(xfm3, x))
-    dvec.append(edist(xfm4, x))
-
-    dmax = -1.0
-    imax = -1
-    for i in range(4):
-        if dvec[i] > dmax:
-            dmax = dvec[i]
-            imax = i
-
-    xf = xfm1
-    if imax == 0:
-        xf = xfm1
-    elif imax == 1:
-        xf = xfm2
-    elif imax == 2:
-        xf = xfm3
-    elif imax == 3:
-        xf = xfm4
-
-    xs_xf = [xs[0]-xf[0], xs[1]-xf[1]]
-    xe_xf = [xe[0]-xf[0], xe[1]-xf[1]]
-    dotp = (xs_xf[0] * xe_xf[0]) + (xs_xf[1] * xe_xf[1])
+    start_cand = (line_start[0]-cand[0], line_start[1]-cand[1])
+    end_cand = (line_end[0]-cand[0], line_end[1]-cand[1])
+    dotp = (start_cand[0] * end_cand[0]) + (start_cand[1] * end_cand[1])
 
     inside = False
     if dotp <= 0.0:
         inside = True
 
-    return dmax, inside
+    return dist, inside
 
 
 def extract_relations(persons, groups):
