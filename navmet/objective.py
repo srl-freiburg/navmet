@@ -3,12 +3,12 @@ from __future__ import division
 import itertools
 import numpy as np
 
-from .utils import subangles, normalize
+from .utils import subangles, normalize, dtw
 
 SMALL_CHANGE = 1e-10
 
 
-__all__ = ['path_length', 'chc']
+__all__ = ['path_length', 'chc', 'path_similarity']
 
 
 def path_length(trajectory):
@@ -97,3 +97,13 @@ def chc(trajectory, degrees=False):
         return heading_changes
 
     return np.degrees(heading_changes)
+
+
+def path_similarity(traj1, traj2, method='dtw'):
+    """ Compute the similarity between two paths
+
+    Paths are treated as different time series signals.
+    """
+    dist, _, _ = dtw(traj1, traj2)
+
+    return dist

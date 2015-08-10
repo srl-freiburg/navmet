@@ -218,11 +218,11 @@ def distance_to_segment(x, (xs, xe)):
     return dmax, inside
 
 
-def extract_links(persons, groups):
-    """" Extract engagement links from grouping information
+def extract_relations(persons, groups):
+    """" Extract relation links from grouping information
 
     Given poses of persons and grouping information in form of person ids per
-    group, this method extracts line segments representing the engagement
+    group, this method extracts line segments representing the relation
     links between the persons.
 
     Parameters
@@ -246,3 +246,58 @@ def extract_links(persons, groups):
         elines.append(line)
 
     return elines
+
+
+def dtw(x, y, dist=lambda x, y: np.linalgnorm(x - y, ord=1)):
+    """ Computes the dtw between two signals.
+
+    Adapted from: https://github.com/pierre-rouanet/dtw/blob/master/dtw.py
+    """
+    x = np.array(x)
+    if len(x.shape) == 1:
+        x = x.reshape(-1, 1)
+    y = np.array(y)
+    if len(y.shape) == 1:
+        y = y.reshape(-1, 1)
+
+    r, c = len(x), len(y)
+
+    D = np.zeros((r + 1, c + 1))
+    D[0, 1:] = np.inf
+    D[1:, 0] = np.inf
+
+    for i in range(r):
+        for j in range(c):
+            D[i+1, j+1] = dist(x[i], y[j])
+
+    for i in range(r):
+        for j in range(c):
+            D[i+1, j+1] += min(D[i, j], D[i, j+1], D[i+1, j])
+
+    D = D[1:, 1:]
+    dist = D[-1, -1] / sum(D.shape)
+
+    return dist, D, _track_back(D)
+
+
+def _track_back(D):
+    i, j = np.array(D.shape) - 1
+    p, q = [i], [j]
+    while i > 0 and j > 0:
+        tb = np.argmin((D[i-1, j-1], D[i-1, j], D[i, j-1]))
+
+        if tb == 0:
+            i -= 1
+            j -= 1
+        elif tb == 1:
+            i -= 1
+        elif tb == 2:
+            j -= 1
+
+        p.insert(0, i)
+        q.insert(0, j)
+
+    p.insert(0, 0)
+    q.insert(0, 0)
+
+    return (np.array(p), np.array(q))
