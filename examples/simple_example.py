@@ -13,7 +13,7 @@ def simple_example():
     # -- Objective metrics
     traj = np.loadtxt('sample_traj.txt')
     agents = np.loadtxt('sample_agents.txt')
-    robot = agents[0, :]
+    # robot = agents[0, :]
     persons = agents[1:, :]
 
     # --- Objective
@@ -44,7 +44,7 @@ def simple_example():
     plt.axis('equal')
 
     # --- Subjective
-    ic, pc, sc = navmet.personal_disturbance(robot, persons)
+    ic, pc, sc = navmet.personal_disturbance(traj, persons)
     print('Instrusion Counts: Intimate = {}, Personal = {}, Social = {}'
           .format(ic, pc, sc))
 

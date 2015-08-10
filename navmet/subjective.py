@@ -26,8 +26,8 @@ def personal_disturbance(trajectory, persons, region_type='uniform',
     -------------
     trajectory : array-like
         Trace of robot poses
-    persons : dict
-        Dictionary of poses of persons in the environment indexed by id
+    persons : array-like
+        Array of poses of persons in the environment indexed by id
     region_type : str, optional (default: 'uniform')
         Type of region around a person to consider, options include:
         [uniform, anisotropic]
@@ -56,7 +56,7 @@ def personal_disturbance(trajectory, persons, region_type='uniform',
     ic, pc, sc = 0, 0, 0
 
     for waypoint in trajectory:
-        for idx, person in persons.items():
+        for person in persons:
             if region_type == 'uniform':
                 distance = edist(waypoint, person)
             elif region_type == 'anisotropic':
