@@ -237,9 +237,12 @@ def extract_relations(persons, groups):
         An a array of line segments, each represented by a tuple of start and
         end points
     """
+    min_id = np.amin(groups)
+
     elines = []
     for [i, j] in groups:
-        line = ((persons[i][0], persons[i][1]), (persons[j][0], persons[j][1]))
+        line = ((persons[i-min_id][0], persons[i-min_id][1]),
+                (persons[j-min_id][0], persons[j-min_id][1]))
         elines.append(line)
 
     return elines
