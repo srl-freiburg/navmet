@@ -59,20 +59,32 @@ def personal_disturbance(trajectory, persons, region_type='uniform',
         for person in persons:
             if region_type == 'uniform':
                 distance = edist(waypoint, person)
+
+                # - cascade check for inclusive lazy count
+                if distance < regions[2]:
+                    sc += 1
+
+                    if distance < regions[1]:
+                        pc += 1
+
+                        if distance < regions[0]:
+                            ic += 1
+
             elif region_type == 'anisotropic':
-                distance = adist(person, waypoint)
+                ed = edist(person, waypoint)
+
+                # - cascade check for inclusive lazy count
+                if ed < adist(person, waypoint, ak=regions[2]):
+                    sc += 1
+
+                    if ed < adist(person, waypoint, ak=regions[1]):
+                        pc += 1
+
+                        if ed < adist(person, waypoint, ak=regions[0]):
+                            ic += 1
+
             else:
                 raise ValueError('Invalid `region_type`')
-
-            # - cascade check for inclusive lazy count
-            if distance < regions[2]:
-                sc += 1
-
-                if distance < regions[1]:
-                    pc += 1
-
-                    if distance < regions[0]:
-                        ic += 1
 
     return ic, pc, sc
 
@@ -84,8 +96,8 @@ def relation_disturbance(trajectory, relations):
     phi = 0.0
     for waypoint in trajectory:
         for relation in relations:
-            dist = distance_to_segment(waypoint, relation)
-            if dist < 0.4:
+            dist, inside = distance_to_segment(waypoint, relation)
+            if inside and dist < 0.6:
                 phi += 1.0
 
     return phi
