@@ -11,41 +11,44 @@ SMALL_CHANGE = 1e-10
 __all__ = ['path_length', 'chc', 'path_similarity']
 
 
-def path_length(trajectory):
+def path_length(traj, metric=lambda x, y: np.linalg.norm(x - y, ord=2)):
     """ Compute the length of a robot trajectory
 
     Compute the sum of distances between waypoints in the robot trajectory
-    using Euclidean distance metric. Given a pose :math:`\mathbf{p} = (x, y)`
+    using specified distance metric. Given a pose :math:`\mathbf{p} = (x, y)`
 
     .. math::
 
-        l = \sum^{T}_{i=1} || \mathbf{p}_i - \mathbf{p}_{i-1} ||_2
+        l = \sum^{T}_{i=1} \mu( \mathbf{p}_i - \mathbf{p}_{i-1} )
+
+    where :math:`\mu` is a *metric*.
 
     Parameters
     -----------
-    trajectory : array-like
+    traj : array-like
         Trajectory representing the path travelled as an array. Each frame
         can encode information such as (x, y, theta, speed, ...)
+    metric : callable, optional (default: Euclidean distance)
+        A metric callable taking two poses and retuning a real value
 
     Returns
     ---------
     path_length : float
-        Length of the path based on Euclidean distance metric
+        Length of the path based on given distance metric
 
     """
-    trajectory = np.asarray(trajectory)
-    assert trajectory.ndim == 2, "Trajectory must be a two dimensional array"
+    traj = np.asarray(traj)
+    assert traj.ndim == 2, "Trajectory must be a two dimensional array"
 
     path_length = 0.0
-    for i, j in itertools.izip(range(trajectory.shape[0]),
-                               range(1, trajectory.shape[0])):
-        current, nextstep = trajectory[i, 0:2], trajectory[j, 0:2]
-        path_length += np.linalg.norm(current - nextstep)
+    path_length = sum(metric(traj[i, 0:2], traj[j, 0:2])
+                      for i, j in itertools.izip(range(traj.shape[0]),
+                                                 range(1, traj.shape[0])))
 
     return path_length
 
 
-def chc(trajectory, degrees=False):
+def chc(traj, degrees=False):
     """ Count the cumulative heading changes along a trajectory
 
     Count the cumulative heading changes of in the trajectory
@@ -54,7 +57,7 @@ def chc(trajectory, degrees=False):
 
     Parameters
     -----------
-    trajectory : array-like
+    traj : array-like
         Trajectory representing the path travelled as an array. Each frame
         can encode information such as (x, y, theta, speed, ...)
 
@@ -74,15 +77,13 @@ def chc(trajectory, degrees=False):
     to get the heading changes. This may change in the future
 
     """
-    trajectory = np.asarray(trajectory)
-    assert trajectory.ndim == 2, "Trajectory must be a two dimensional array"
+    traj = np.asarray(traj)
+    assert traj.ndim == 2, "Trajectory must be a two dimensional array"
 
     heading_changes = 0.0
     theta_old = 0.0
-    for i, j in itertools.izip(range(trajectory.shape[0]),
-                               range(1, trajectory.shape[0])):
-
-        current, nextstep = trajectory[i, 0:2], trajectory[j, 0:2]
+    for i, j in itertools.izip(range(traj.shape[0]), range(1, traj.shape[0])):
+        current, nextstep = traj[i, 0:2], traj[j, 0:2]
         x1, y1 = current[0], current[1]
         x2, y2 = nextstep[0], nextstep[1]
         dx, dy = (x2 - x1), (y2 - y1)

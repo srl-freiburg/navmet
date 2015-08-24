@@ -248,7 +248,7 @@ def extract_relations(persons, groups):
     return elines
 
 
-def dtw(x, y, dist=lambda x, y: np.linalgnorm(x - y, ord=1)):
+def dtw(x, y, dist=lambda x, y: np.linalg.norm(x - y, ord=1)):
     """ Computes the dtw between two signals.
 
     Adapted from: https://github.com/pierre-rouanet/dtw/blob/master/dtw.py
