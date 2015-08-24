@@ -17,8 +17,8 @@ def simple_example():
     persons = agents[1:, :]
 
     # --- Objective
-    pl = navmet.path_length(trajectory=traj)
-    chc = navmet.chc(trajectory=traj)
+    pl = navmet.path_length(traj)
+    chc = navmet.chc(traj)
     print('Objective Metrics: Path length = {}, CHC = {}'.format(pl, chc))
 
     # plot their configuration
