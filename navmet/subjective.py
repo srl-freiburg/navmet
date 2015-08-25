@@ -145,8 +145,7 @@ def personal_disturbance_dynamic(traj, persons, region_type='uniform',
     return intimate, personal, social
 
 
-def _personal_disturbance(robot, persons, region_type='uniform',
-                          regions=[0.45, 1.2, 3.6]):
+def _personal_disturbance(robot, persons, region_type, regions):
     """ Compute the instantaneous personal disturbance
 
     """

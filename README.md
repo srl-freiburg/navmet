@@ -1,5 +1,5 @@
-`navmet` Robot Navigation Metrics
-======================================
+Robot Navigation Metrics
+============================
 
 A set of objective and subjective metrics for evaluating robot navigation behavior especially in crowded environments where socially compliant behavior is required.
 
@@ -8,11 +8,13 @@ Features
 - Objective metrics based on trajectory geometry
   - Path length
   - Cumulative heading changes
+  - Path similarity (based on a refence trajectory)
 - Subjective metrics inspired from computational social sciences
-  - Intrusion counts into various spaces as defined by Proxemics, i.e Intimate, Personal, Social and any custom defined ranges
+  - Intrusion counts into various spaces as defined by Proxemics, i.e intimate, personal, social or any custom defined regions
   - Two ways of counting intrusions:
       - Uniform circles
       - Anisotropic regions
+  - Relation disturbance (robot crossing relation links between people, e.g. a group)
 
 Requirements
 ---------------
@@ -37,7 +39,6 @@ See `examples` folder
 Roadmap
 ---------
 - [ ] Adding more objective and subjectibve metrics
-- [ ] Various timings for timestamped trajectories
 - [ ] 'Energy type' metrics
 - [ ] Elliptical regions as in Proxemics
 
