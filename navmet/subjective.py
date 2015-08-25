@@ -57,9 +57,8 @@ def personal_disturbance(traj, persons, region_type='uniform',
     # - better handling of regions
 
     # check that the regions list is strictly monotonically increasing
-    monotone = all(itertools.starmap(operator.le, zip(regions, regions[1:])))
-    assert monotone is True,\
-        "Regions list must be monotonically increasing"
+    monotonic = all(itertools.starmap(operator.le, zip(regions, regions[1:])))
+    assert monotonic, "Regions list must be monotonically increasing"
 
     assert region_type in REGION_TYPES, \
         'Supported region types: {}'.format(REGION_TYPES)
@@ -119,9 +118,8 @@ def personal_disturbance_dynamic(traj, persons, region_type='uniform',
     """
 
     # check that the regions list is strictly monotonically increasing
-    monotone = all(itertools.starmap(operator.le, zip(regions, regions[1:])))
-    assert monotone is True,\
-        "Regions list must be monotonically increasing"
+    monotonic = all(itertools.starmap(operator.le, zip(regions, regions[1:])))
+    assert monotonic, "Regions list must be monotonically increasing"
 
     assert region_type in REGION_TYPES, \
         'Supported region types: {}'.format(REGION_TYPES)
