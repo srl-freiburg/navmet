@@ -2,6 +2,8 @@ from __future__ import division
 
 import numpy as np
 
+from six.moves import range
+
 
 def normalize(theta, start=0):
     """
@@ -138,8 +140,8 @@ def adist(focal_agent, other_agent, ak=2.48, bk=1.0, lambda_=0.4, rij=0.9):
     nij = np.array([np.cos(phi), np.sin(phi)])
     ns = 2
     alpha = ak * np.exp((rij - dij) / bk) * nij
-    beta_ = np.tile(np.ones(shape=(1, ns)) * lambda_ + ((1 - lambda_)
-                    * (np.ones(shape=(1, ns)) - (np.dot(nij.T, ei)).T) / 2.),
+    beta_ = np.tile(np.ones(shape=(1, ns)) * lambda_ + ((1 - lambda_) *
+                    (np.ones(shape=(1, ns)) - (np.dot(nij.T, ei)).T) / 2.),
                     [1, 1])
     curve = np.multiply(alpha, beta_).T
     dc = np.hypot(curve[0], curve[1])

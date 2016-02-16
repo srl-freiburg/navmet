@@ -3,6 +3,8 @@ from __future__ import division
 import itertools
 import numpy as np
 
+from six.moves import range
+
 from .utils import subangles, normalize, dtw
 
 SMALL_CHANGE = 1e-10

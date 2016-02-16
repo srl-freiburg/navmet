@@ -1,6 +1,11 @@
-r"""
+"""
 
-Module doc
+Subjective metrics for evaluations robot navigation in crowds
+===============================================================
+
+A set of metrics useful for evaluating social compliance of a robot navigating
+in crowded environments.
+
 """
 
 from __future__ import division
@@ -10,12 +15,20 @@ import operator
 
 import numpy as np
 
+from six.moves import range
+
 from .utils import edist
 from .utils import adist
 from .utils import distance_to_segment
 
 
 REGION_TYPES = ('anisotropic', 'uniform')
+
+__all__ = [
+    'personal_disturbance',
+    'personal_disturbance_dynamic',
+    'relation_disturbance',
+]
 
 
 def personal_disturbance(traj, persons, region_type='uniform',
@@ -117,7 +130,6 @@ def personal_disturbance_dynamic(traj, persons, region_type='uniform',
 
     """
 
-    # check that the regions list is strictly monotonically increasing
     monotonic = all(itertools.starmap(operator.le, zip(regions, regions[1:])))
     assert monotonic, "Regions list must be monotonically increasing"
 
@@ -131,13 +143,13 @@ def personal_disturbance_dynamic(traj, persons, region_type='uniform',
     assert persons.ndim == 3,\
         "`persons` must be a three dimensional array, indexed by frame"
 
-    assert persons.shape[0] == traj.shape[0],\
-        "No of frames must match in `traj` and `persons`"
-
     intimate, personal, social = 0, 0, 0
-    for frame in range(traj.shape[0]):
-        i, p, s = _personal_disturbance(traj[frame, :], persons[frame, :],
-                                        region_type, regions)
+    num_frames = min(traj.shape[0], persons.shape[0])
+    for frame in range(num_frames):
+        i, p, s = _personal_disturbance(traj[frame, :],
+                                        persons[frame, :],
+                                        region_type,
+                                        regions)
         intimate += i
         personal += p
         social += s
@@ -146,9 +158,7 @@ def personal_disturbance_dynamic(traj, persons, region_type='uniform',
 
 
 def _personal_disturbance(robot, persons, region_type, regions):
-    """ Compute the instantaneous personal disturbance
-
-    """
+    """ Compute the instantaneous personal disturbance """
     ic, pc, sc = 0, 0, 0
     for person in persons:
         if region_type == 'uniform':
@@ -180,15 +190,33 @@ def _personal_disturbance(robot, persons, region_type, regions):
     return ic, pc, sc
 
 
-def relation_disturbance(traj, relations):
+def relation_disturbance(traj, relations, cutoff=0.6):
     """ Compute the total disturbance caused on an relation zone
+
+    A relation zone is defined to be a rectangle around the line joining two
+    persons. The `cutoff` parameter speficies half the width of the rectangle.
+
+    Parameters
+    -------------
+    traj : array-like
+        Trace of robot poses
+    relations : array-like
+        2D array of lines (specified by 2D start and end poses) of all the
+        people who are engaged in a social relation.
+    cutoff : float, optional (default: 0.6)
+        Half the width of the relation rectangle.
+
+    Returns
+    --------
+    phi : int
+        Number of intrusions into the relation zone.
 
     """
     phi = 0.0
     for waypoint in traj:
         for relation in relations:
             dist, inside = distance_to_segment(waypoint, relation)
-            if inside and dist < 0.6:
+            if inside and dist < cutoff:
                 phi += 1.0
 
     return phi
